@@ -151,7 +151,7 @@ resource "aws_iam_user_policy_attachment" "task-s3-access" {
 
 resource "aws_cloudwatch_log_group" "application" {
   name              = "/ecs/${var.applicationName}"
-  retention_in_days = 14
+  retention_in_days = var.aws_cloudwatch_log_retention
 }
 
 resource "aws_ecs_task_definition" "application" {
@@ -245,7 +245,6 @@ resource "aws_lb_listener_rule" "application" {
 }
 
 resource "aws_ecs_service" "default" {
-  count                             = var.createEcsService ? 1 : 0
   name                              = var.applicationName
   cluster                           = var.ecs_cluster_arn
   task_definition                   = aws_ecs_task_definition.application.arn
@@ -279,7 +278,6 @@ resource "aws_ecs_service" "default" {
 }
 
 resource "aws_iam_policy" "ecsDevDeployPolicy" {
-  count       = var.createEcsService ? 1 : 0
   name        = "${var.applicationName}-ecsDevDeployPolicy"
   description = "Policy for ECS Dev Deploy"
   policy = jsonencode({
@@ -290,16 +288,15 @@ resource "aws_iam_policy" "ecsDevDeployPolicy" {
         Action = [
           "ecs:UpdateService",
         ]
-        Resource = [aws_ecs_service.default[0].id]
+        Resource = [aws_ecs_service.default.id]
       }
   ] })
   depends_on = [aws_ecs_service.default]
 }
 
 resource "aws_iam_user_policy_attachment" "application-pipeline-deploy-ecs" {
-  count      = var.createEcsService ? 1 : 0
   user       = aws_iam_user.application-pipeline.name
-  policy_arn = aws_iam_policy.ecsDevDeployPolicy[0].arn
+  policy_arn = aws_iam_policy.ecsDevDeployPolicy.arn
 }
 
 resource "aws_iam_policy" "ecsDevDeployListTaskPolicy" {

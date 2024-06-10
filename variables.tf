@@ -1,6 +1,7 @@
 variable "createEcsService" {
   type        = bool
-  description = "Whether to create the ECS service"
+  description = "!DEPRECATED! - Use desired_count instead - Whether to create the ECS service"
+  
   default     = true
 }
 
@@ -8,6 +9,12 @@ variable "aws_cloudwatch_region" {
   type        = string
   description = "AWS CloudWatch region"
   default     = "eu-central-1"
+}
+
+variable "aws_cloudwatch_log_retention" {
+  type        = number
+  description = "AWS CloudWatch log retention in days"
+  default     = 14
 }
 
 variable "vpc_id" {
