@@ -43,7 +43,7 @@ output "application_task_secret_access_key" {
 }
 
 output "application_service_name" {
-  value       = aws_ecs_service.default[0].name
+  value       = aws_ecs_service.default.name
   description = "Service name for the application"
   sensitive   = false
 }

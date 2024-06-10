@@ -44,6 +44,8 @@ No modules.
 | [aws_lb_target_group.application](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group) | resource |
 | [aws_route53_record.application](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
 | [aws_s3_bucket.application](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
+| [aws_s3_bucket_public_access_block.example](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block) | resource |
+| [aws_s3_bucket_server_side_encryption_configuration.example](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_server_side_encryption_configuration) | resource |
 
 ## Inputs
 
@@ -53,12 +55,13 @@ No modules.
 | <a name="input_applicationTaskEcrArn"></a> [applicationTaskEcrArn](#input\_applicationTaskEcrArn) | The ARN of the ECR policy | `string` | n/a | yes |
 | <a name="input_applicationTaskExecutionEcrArn"></a> [applicationTaskExecutionEcrArn](#input\_applicationTaskExecutionEcrArn) | The ARN of the ECR policy | `string` | n/a | yes |
 | <a name="input_application_fqdn"></a> [application\_fqdn](#input\_application\_fqdn) | value for the development backend fqdn | `string` | n/a | yes |
+| <a name="input_aws_cloudwatch_log_retention"></a> [aws\_cloudwatch\_log\_retention](#input\_aws\_cloudwatch\_log\_retention) | AWS CloudWatch log retention in days | `number` | `14` | no |
 | <a name="input_aws_cloudwatch_region"></a> [aws\_cloudwatch\_region](#input\_aws\_cloudwatch\_region) | AWS CloudWatch region | `string` | `"eu-central-1"` | no |
 | <a name="input_container_healtCheck_commands"></a> [container\_healtCheck\_commands](#input\_container\_healtCheck\_commands) | The command to run to check the health of the container | `list(string)` | <pre>[<br>  "CMD-SHELL",<br>  "curl -f http://localhost:8080/health || exit 1"<br>]</pre> | no |
 | <a name="input_container_health_check_grace_period_seconds"></a> [container\_health\_check\_grace\_period\_seconds](#input\_container\_health\_check\_grace\_period\_seconds) | The grace period for health checks | `number` | `0` | no |
 | <a name="input_container_port"></a> [container\_port](#input\_container\_port) | The port the container listens on | `number` | `8080` | no |
 | <a name="input_cpu"></a> [cpu](#input\_cpu) | The amount of CPU units to reserve for the container | `number` | `1024` | no |
-| <a name="input_createEcsService"></a> [createEcsService](#input\_createEcsService) | Whether to create the ECS service | `bool` | `true` | no |
+| <a name="input_createEcsService"></a> [createEcsService](#input\_createEcsService) | !DEPRECATED! - Use desired\_count instead - Whether to create the ECS service | `bool` | `true` | no |
 | <a name="input_desired_count"></a> [desired\_count](#input\_desired\_count) | The desired number of tasks to run | `number` | `1` | no |
 | <a name="input_ecr_access_policy_arn"></a> [ecr\_access\_policy\_arn](#input\_ecr\_access\_policy\_arn) | The ARN of the ECR access policy | `string` | n/a | yes |
 | <a name="input_ecs_capacity_provider"></a> [ecs\_capacity\_provider](#input\_ecs\_capacity\_provider) | The name of the ECS capacity provider | `string` | `"FARGATE_SPOT"` | no |
