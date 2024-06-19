@@ -27,6 +27,11 @@ variable "applicationName" {
   description = "Name of the application"
 }
 
+variable "application_S3_bucket_prefix" {
+  type = string
+  description = "The prefix for the S3 bucket"
+}
+
 variable "application_fqdn" {
   type        = string
   description = "value for the development backend fqdn"
@@ -156,4 +161,10 @@ variable "desired_count" {
   type        = number
   description = "The desired number of tasks to run"
   default     = 1
+}
+
+variable additional_domain_names {
+  type        = list(string)
+  description = "Additional domain names for the application"
+  default     = []
 }
