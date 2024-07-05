@@ -21,16 +21,38 @@ resource "aws_iam_user_policy_attachment" "application-pipeline" {
 }
 
 resource "aws_s3_bucket" "application" {
-  bucket = "application-${var.applicationName}"
+  bucket = "${var.application_S3_bucket_prefix}-${var.applicationName}"
 }
+
+data "aws_caller_identity" "current" {}
+
+resource "aws_kms_key" "s3" {
+  description             = "This key is used to encrypt bucket objects"
+  deletion_window_in_days = 10
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        },
+        Action   = "kms:*",
+        Resource = "*"
+      }
+    ]
+  })
+}
+
 resource "aws_s3_bucket_server_side_encryption_configuration" "example" {
   bucket = aws_s3_bucket.application.bucket
 
   rule {
     apply_server_side_encryption_by_default {
-      kms_master_key_id = "aws/s3"
+      kms_master_key_id = aws_kms_key.s3.arn
       sse_algorithm     = "aws:kms"
     }
+    bucket_key_enabled = true
   }
 }
 resource "aws_s3_bucket_public_access_block" "example" {
@@ -56,6 +78,14 @@ resource "aws_iam_policy" "application-s3" {
           "s3:ListBucket"
         ],
         Resource = ["${aws_s3_bucket.application.arn}/*", aws_s3_bucket.application.arn]
+      },
+      {
+        Effect = "Allow",
+        Action = [
+          "kms:Decrypt",
+          "kms:GenerateDataKey"
+        ],
+        Resource = [aws_kms_key.s3.arn]
       }
     ]
   })
@@ -158,6 +188,9 @@ resource "aws_ecs_task_definition" "application" {
   family = "${var.applicationName}-application"
   cpu    = var.cpu
   memory = var.memory
+  ephemeral_storage {
+    size_in_gib = 30
+  }
   container_definitions = jsonencode([
     {
       name      = var.applicationName
@@ -204,7 +237,7 @@ resource "aws_ecs_task_definition" "application" {
 }
 
 resource "aws_lb_target_group" "application" {
-  name        = "ecs-application-${var.applicationName}"
+  name        = var.applicationName
   port        = var.host_port
   protocol    = "HTTP"
   target_type = "ip"
@@ -239,7 +272,7 @@ resource "aws_lb_listener_rule" "application" {
   }
   condition {
     host_header {
-      values = [var.application_fqdn]
+      values = concat([var.application_fqdn], var.additional_domain_names)
     }
   }
 }
