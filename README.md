@@ -18,7 +18,6 @@ This Terraform was validated using [Trivy](https://aquasecurity.github.io/trivy/
 * It's intended to allow `logs:CreateLogStream` on a given resource. So the application will bi able to create custom logs by its own.
 * It's intended to have bucket versioning disabled. 
 
-
 ## Requirements
 
 | Name | Version |
@@ -61,20 +60,24 @@ No modules.
 | [aws_iam_user_policy_attachment.application-pipeline-deploy-ecs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_user_policy_attachment) | resource |
 | [aws_iam_user_policy_attachment.application-pipeline-deploy-listTasks](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_user_policy_attachment) | resource |
 | [aws_iam_user_policy_attachment.task-s3-access](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_user_policy_attachment) | resource |
+| [aws_kms_key.s3](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key) | resource |
 | [aws_lb_listener_rule.application](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener_rule) | resource |
 | [aws_lb_target_group.application](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group) | resource |
 | [aws_route53_record.application](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
 | [aws_s3_bucket.application](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
 | [aws_s3_bucket_public_access_block.example](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block) | resource |
 | [aws_s3_bucket_server_side_encryption_configuration.example](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_server_side_encryption_configuration) | resource |
+| [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_additional_domain_names"></a> [additional\_domain\_names](#input\_additional\_domain\_names) | Additional domain names for the application | `list(string)` | `[]` | no |
 | <a name="input_applicationName"></a> [applicationName](#input\_applicationName) | Name of the application | `string` | n/a | yes |
 | <a name="input_applicationTaskEcrArn"></a> [applicationTaskEcrArn](#input\_applicationTaskEcrArn) | The ARN of the ECR policy | `string` | n/a | yes |
 | <a name="input_applicationTaskExecutionEcrArn"></a> [applicationTaskExecutionEcrArn](#input\_applicationTaskExecutionEcrArn) | The ARN of the ECR policy | `string` | n/a | yes |
+| <a name="input_application_S3_bucket_prefix"></a> [application\_S3\_bucket\_prefix](#input\_application\_S3\_bucket\_prefix) | The prefix for the S3 bucket | `string` | n/a | yes |
 | <a name="input_application_fqdn"></a> [application\_fqdn](#input\_application\_fqdn) | value for the development backend fqdn | `string` | n/a | yes |
 | <a name="input_aws_cloudwatch_log_retention"></a> [aws\_cloudwatch\_log\_retention](#input\_aws\_cloudwatch\_log\_retention) | AWS CloudWatch log retention in days | `number` | `14` | no |
 | <a name="input_aws_cloudwatch_region"></a> [aws\_cloudwatch\_region](#input\_aws\_cloudwatch\_region) | AWS CloudWatch region | `string` | `"eu-central-1"` | no |

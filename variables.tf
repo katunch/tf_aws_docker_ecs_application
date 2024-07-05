@@ -1,8 +1,8 @@
 variable "createEcsService" {
   type        = bool
   description = "!DEPRECATED! - Use desired_count instead - Whether to create the ECS service"
-  
-  default     = true
+
+  default = true
 }
 
 variable "aws_cloudwatch_region" {
@@ -25,10 +25,14 @@ variable "vpc_id" {
 variable "applicationName" {
   type        = string
   description = "Name of the application"
+  validation {
+    condition     = length(var.example_variable) <= 32
+    error_message = "The variable 'applicationName' must not exceed 32 characters in length."
+  }
 }
 
 variable "application_S3_bucket_prefix" {
-  type = string
+  type        = string
   description = "The prefix for the S3 bucket"
 }
 
@@ -163,7 +167,7 @@ variable "desired_count" {
   default     = 1
 }
 
-variable additional_domain_names {
+variable "additional_domain_names" {
   type        = list(string)
   description = "Additional domain names for the application"
   default     = []

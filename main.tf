@@ -33,12 +33,12 @@ resource "aws_kms_key" "s3" {
     Version = "2012-10-17",
     Statement = [
       {
-        Effect    = "Allow",
+        Effect = "Allow",
         Principal = {
           AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
         },
-        Action    = "kms:*",
-        Resource  = "*"
+        Action   = "kms:*",
+        Resource = "*"
       }
     ]
   })
@@ -52,6 +52,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "example" {
       kms_master_key_id = aws_kms_key.s3.arn
       sse_algorithm     = "aws:kms"
     }
+    bucket_key_enabled = true
   }
 }
 resource "aws_s3_bucket_public_access_block" "example" {
@@ -187,6 +188,9 @@ resource "aws_ecs_task_definition" "application" {
   family = "${var.applicationName}-application"
   cpu    = var.cpu
   memory = var.memory
+  ephemeral_storage {
+    size_in_gib = 30
+  }
   container_definitions = jsonencode([
     {
       name      = var.applicationName
@@ -233,7 +237,7 @@ resource "aws_ecs_task_definition" "application" {
 }
 
 resource "aws_lb_target_group" "application" {
-  name        = "ecs-application-${var.applicationName}"
+  name        = var.applicationName
   port        = var.host_port
   protocol    = "HTTP"
   target_type = "ip"
