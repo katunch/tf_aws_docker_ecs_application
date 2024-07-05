@@ -26,7 +26,7 @@ variable "applicationName" {
   type        = string
   description = "Name of the application"
   validation {
-    condition     = length(var.application_name) <= 32
+    condition     = length(var.applicationName) <= 32
     error_message = "The variable 'applicationName' must not exceed 32 characters in length."
   }
 }
