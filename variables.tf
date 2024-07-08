@@ -1,10 +1,3 @@
-variable "createEcsService" {
-  type        = bool
-  description = "!DEPRECATED! - Use desired_count instead - Whether to create the ECS service"
-
-  default = true
-}
-
 variable "aws_cloudwatch_region" {
   type        = string
   description = "AWS CloudWatch region"
@@ -111,6 +104,12 @@ variable "environment_variables" {
   description = "Environment variables for the application"
 }
 
+variable "environment_secrets" {
+  type        = map(string)
+  description = "Environment secrets for the application, stored in AWS Secrets Manager"
+  default     = {}
+}
+
 variable "cpu" {
   type        = number
   description = "The amount of CPU units to reserve for the container"
@@ -146,8 +145,6 @@ variable "host_port" {
   description = "The port the host listens on"
   default     = 8080
 }
-
-
 
 variable "health_check_path" {
   type        = string
