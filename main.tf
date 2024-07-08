@@ -117,6 +117,15 @@ resource "aws_iam_role_policy_attachment" "applicationTaskEcr" {
 }
 
 
+
+resource "aws_secretsmanager_secret_version" "application" {
+  secret_id = aws_secretsmanager_secret.application.id
+  secret_string = jsonencode(merge(var.environment_secrets, {
+    "AWS_SDK_ACCESS_KEY" = aws_iam_access_key.application-task.id
+    "AWS_SDK_SECRET"     = aws_iam_access_key.application-task.secret
+  }))
+}
+
 resource "aws_iam_role" "application-task-execution-role" {
   name = "${var.applicationName}-task-execution-role"
   assume_role_policy = jsonencode({
@@ -158,12 +167,32 @@ resource "aws_iam_policy" "applicationCreateLogStreams" {
       }
     ]
   })
-
 }
 
 resource "aws_iam_role_policy_attachment" "applicationCreateLogStreams" {
   role       = aws_iam_role.application-task-execution-role.name
   policy_arn = aws_iam_policy.applicationCreateLogStreams.arn
+}
+
+resource "aws_iam_policy" "applicationExecutionReadSecrets" {
+  name        = "${var.applicationName}-execution-read-secrets"
+  description = "Allow ECS to read secrets"
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ],
+        Resource = ["${aws_secretsmanager_secret.application.arn}:*"]
+      }
+    ]
+  })
+}
+resource "aws_iam_role_policy_attachment" "secretsAccess" {
+  role       = aws_iam_role.application-task-execution-role.name
+  policy_arn = aws_iam_policy.applicationExecutionReadSecrets.arn
 }
 
 resource "aws_iam_user" "application-task" {
@@ -186,14 +215,6 @@ resource "aws_cloudwatch_log_group" "application" {
 
 resource "aws_secretsmanager_secret" "application" {
   name = "${var.applicationName}-secrets"
-}
-
-resource "aws_secretsmanager_secret_version" "application" {
-  secret_id = aws_secretsmanager_secret.application.id
-  secret_string = jsonencode(merge(var.environment_secrets, {
-    "AWS_SDK_ACCESS_KEY" = aws_iam_access_key.application-task.id
-    "AWS_SDK_SECRET"     = aws_iam_access_key.application-task.secret
-  }))
 }
 
 resource "aws_ecs_task_definition" "application" {
