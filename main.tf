@@ -184,6 +184,18 @@ resource "aws_cloudwatch_log_group" "application" {
   retention_in_days = var.aws_cloudwatch_log_retention
 }
 
+resource "aws_secretsmanager_secret" "application" {
+  name = "${var.applicationName}-secrets"
+}
+
+resource "aws_secretsmanager_secret_version" "application" {
+  secret_id = aws_secretsmanager_secret.application.id
+  secret_string = jsonencode(merge(var.environment_secrets, {
+    "AWS_SDK_ACCESS_KEY" = aws_iam_access_key.application-task.id
+    "AWS_SDK_SECRET"     = aws_iam_access_key.application-task.secret
+  }))
+}
+
 resource "aws_ecs_task_definition" "application" {
   family = "${var.applicationName}-application"
   cpu    = var.cpu
@@ -202,12 +214,13 @@ resource "aws_ecs_task_definition" "application" {
           hostPort      = var.host_port
         }
       ]
-      environment = [for key, value in merge(var.environment_variables, {
-        "AWS_SDK_ACCESS_KEY" = aws_iam_access_key.application-task.id
-        "AWS_SDK_SECRET"     = aws_iam_access_key.application-task.secret
-        }) : {
+      environment = [for key, value in var.environment_variables : {
         name  = key
         value = value
+      }]
+      secrets = [for key, value in var.environment_secrets : {
+        name      = key
+        valueFrom = "${aws_secretsmanager_secret.application.arn}:${key}::"
       }]
       healthCheck = {
         command     = var.container_healtCheck_commands
