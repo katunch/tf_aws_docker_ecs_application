@@ -1,6 +1,6 @@
 location /nginx_status {
     stub_status on;
     access_log off;
-    allow ${NGINX_VPC_CIDR_BLOCK}
+    allow ${NGINX_VPC_CIDR_BLOCK};
     deny all;
 }
