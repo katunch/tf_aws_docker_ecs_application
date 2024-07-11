@@ -188,7 +188,7 @@ resource "aws_iam_policy" "applicationExecutionReadSecrets" {
         Resource = [
           "${aws_secretsmanager_secret.application.arn}",
           "${aws_secretsmanager_secret.application.arn}:*"
-          ]
+        ]
       }
     ]
   })
@@ -228,6 +228,32 @@ resource "aws_ecs_task_definition" "application" {
     size_in_gib = 30
   }
   container_definitions = jsonencode([
+    {
+      name                   = "${var.applicationName}-nginx"
+      image                  = "nginx:stable"
+      readonlyRootFilesystem = true
+      portMappings = [
+        {
+          containerPort = 80,
+          hostPort      = 80
+        }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = "${aws_cloudwatch_log_group.application.name}/nginx"
+          "awslogs-region"        = var.aws_cloudwatch_region
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
+      healthCheck = {
+        command     = ["CMD-SHELL", "curl -f http://localhost/ || exit 1"]
+        interval    = 20
+        timeout     = 5
+        retries     = 3
+        startPeriod = 120
+      }
+    },
     {
       name      = var.applicationName
       image     = var.image
@@ -275,7 +301,7 @@ resource "aws_ecs_task_definition" "application" {
 
 resource "aws_lb_target_group" "application" {
   name        = var.applicationName
-  port        = var.host_port
+  port        = 80
   protocol    = "HTTP"
   target_type = "ip"
   vpc_id      = var.vpc_id
@@ -336,7 +362,7 @@ resource "aws_ecs_service" "default" {
   load_balancer {
     target_group_arn = aws_lb_target_group.application.arn
     container_name   = var.applicationName
-    container_port   = var.container_port
+    container_port   = 80
   }
 
   depends_on = [
