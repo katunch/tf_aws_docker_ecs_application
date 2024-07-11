@@ -25,6 +25,9 @@ resource "aws_s3_bucket" "application" {
 }
 
 data "aws_caller_identity" "current" {}
+data "aws_vpc" "selected" {
+  id = var.vpc_id
+}
 
 resource "aws_kms_key" "s3" {
   description             = "This key is used to encrypt bucket objects"
@@ -163,7 +166,10 @@ resource "aws_iam_policy" "applicationCreateLogStreams" {
         Action = [
           "logs:CreateLogStream"
         ],
-        Resource = ["${aws_cloudwatch_log_group.application.arn}/*"]
+        Resource = [
+          "${aws_cloudwatch_log_group.application.arn}/*",
+          "${aws_cloudwatch_log_group.nginx.arn}/*"
+        ]
       }
     ]
   })
@@ -216,6 +222,11 @@ resource "aws_cloudwatch_log_group" "application" {
   retention_in_days = var.aws_cloudwatch_log_retention
 }
 
+resource "aws_cloudwatch_log_group" "nginx" {
+  name              = "/ecs/${var.applicationName}-nginx"
+  retention_in_days = var.aws_cloudwatch_log_retention
+}
+
 resource "aws_secretsmanager_secret" "application" {
   name = "${var.applicationName}-secrets"
 }
@@ -230,8 +241,8 @@ resource "aws_ecs_task_definition" "application" {
   container_definitions = jsonencode([
     {
       name                   = "${var.applicationName}-nginx"
-      image                  = "ghcr.io/katunch/tf_aws_docker_ecs_application:v1.1.0"
-      readonlyRootFilesystem = true
+      image                  = "ghcr.io/katunch/tf_aws_docker_ecs_application:v1.1.1"
+      readonlyRootFilesystem = false
       portMappings = [
         {
           containerPort = 80,
@@ -241,7 +252,7 @@ resource "aws_ecs_task_definition" "application" {
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          "awslogs-group"         = "${aws_cloudwatch_log_group.application.name}/nginx"
+          "awslogs-group"         = "${aws_cloudwatch_log_group.nginx.name}"
           "awslogs-region"        = var.aws_cloudwatch_region
           "awslogs-stream-prefix" = "ecs"
         }
@@ -253,9 +264,14 @@ resource "aws_ecs_task_definition" "application" {
         retries     = 3
         startPeriod = 120
       }
-      environment = {
-        "NGINX_PROXY_URL" = "http://localhost:${var.container_port}"
-      }
+      environment = [{
+        name = "NGINX_PROXY_URL"
+        value = "http://localhost:${var.container_port}"
+      },
+      {
+        name = "NGINX_VPC_CIDR_BLOCK"
+        value = data.aws_vpc.selected.cidr_block
+      }]
     },
     {
       name      = var.applicationName
@@ -364,7 +380,7 @@ resource "aws_ecs_service" "default" {
 
   load_balancer {
     target_group_arn = aws_lb_target_group.application.arn
-    container_name   = var.applicationName
+    container_name   = "${var.applicationName}-nginx"
     container_port   = 80
   }
 
