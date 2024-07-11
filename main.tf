@@ -230,7 +230,7 @@ resource "aws_ecs_task_definition" "application" {
   container_definitions = jsonencode([
     {
       name                   = "${var.applicationName}-nginx"
-      image                  = "nginx:stable"
+      image                  = "ghcr.io/katunch/tf_aws_docker_ecs_application:v1.1.0"
       readonlyRootFilesystem = true
       portMappings = [
         {
@@ -252,6 +252,9 @@ resource "aws_ecs_task_definition" "application" {
         timeout     = 5
         retries     = 3
         startPeriod = 120
+      }
+      environment = {
+        "NGINX_PROXY_URL" = "http://localhost:${var.container_port}"
       }
     },
     {
