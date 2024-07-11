@@ -1,0 +1,19 @@
+location ~ (\.php|.aspx|.asp|myadmin) {
+    deny all;
+}
+
+location ~* "(eval\()" {
+    deny all;
+}
+
+location ~* "(\'|\")(.*)(drop|insert|md5|select|union)" {
+    deny all;
+}
+
+location ~ "(~|`|<|>|:|;|%|\\|\s|\{|\}|\[|\]|\|)" {
+    deny all;
+}
+
+location ~* "(<|%3C).*script.*(>|%3)" {
+    deny all;
+}
