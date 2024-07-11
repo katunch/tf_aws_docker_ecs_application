@@ -8,11 +8,7 @@ name: Docker
 on:
   push:
     branches: [ "develop" ]
-    # Publish semver tags as releases.
-    tags: [ 'v*.*.*' ]
-    paths:
-      - './nginx/**'
-
+  
 env:
   # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
