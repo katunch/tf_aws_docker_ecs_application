@@ -185,7 +185,10 @@ resource "aws_iam_policy" "applicationExecutionReadSecrets" {
         Action = [
           "secretsmanager:GetSecretValue"
         ],
-        Resource = ["${aws_secretsmanager_secret.application.arn}:*"]
+        Resource = [
+          "${aws_secretsmanager_secret.application.arn}",
+          "${aws_secretsmanager_secret.application.arn}:*"
+          ]
       }
     ]
   })
