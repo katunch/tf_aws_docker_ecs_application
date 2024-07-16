@@ -119,14 +119,17 @@ resource "aws_iam_role_policy_attachment" "applicationTaskEcr" {
   policy_arn = var.applicationTaskEcrArn
 }
 
+locals {
+  environment_secrets = merge(var.environment_secrets, {
+    "AWS_SDK_ACCESS_KEY" = aws_iam_access_key.application-task.id
+    "AWS_SDK_SECRET"     = aws_iam_access_key.application-task.secret
+  })
+}
 
 
 resource "aws_secretsmanager_secret_version" "application" {
   secret_id = aws_secretsmanager_secret.application.id
-  secret_string = jsonencode(merge(var.environment_secrets, {
-    "AWS_SDK_ACCESS_KEY" = aws_iam_access_key.application-task.id
-    "AWS_SDK_SECRET"     = aws_iam_access_key.application-task.secret
-  }))
+  secret_string = jsonencode(local.environment_secrets)
 }
 
 resource "aws_iam_role" "application-task-execution-role" {
@@ -287,7 +290,7 @@ resource "aws_ecs_task_definition" "application" {
         name  = key
         value = value
       }]
-      secrets = [for key, value in var.environment_secrets : {
+      secrets = [for key, value in local.environment_secrets : {
         name      = key
         valueFrom = "${aws_secretsmanager_secret.application.arn}:${key}::"
       }]
