@@ -244,7 +244,7 @@ resource "aws_ecs_task_definition" "application" {
   container_definitions = jsonencode([
     {
       name                   = "${var.applicationName}-nginx"
-      image                  = "ghcr.io/katunch/tf_aws_docker_ecs_application:v1.1.1"
+      image                  = "ghcr.io/katunch/tf_aws_docker_ecs_application:v1.1.3"
       readonlyRootFilesystem = false
       portMappings = [
         {
@@ -261,7 +261,7 @@ resource "aws_ecs_task_definition" "application" {
         }
       }
       healthCheck = {
-        command     = ["CMD-SHELL", "curl -f http://localhost/ || exit 1"]
+        command     = ["CMD-SHELL", "curl -f http://localhost/nginx_status || exit 1"]
         interval    = 20
         timeout     = 5
         retries     = 3
