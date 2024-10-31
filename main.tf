@@ -247,7 +247,7 @@ resource "aws_ecs_task_definition" "application" {
   container_definitions = jsonencode([
     {
       name                   = "${var.applicationName}-nginx"
-      image                  = "ghcr.io/katunch/tf_aws_docker_ecs_application:v1.1.5"
+      image                  = "ghcr.io/katunch/tf_aws_docker_ecs_application:v1.1.6"
       readonlyRootFilesystem = false
       portMappings = [
         {
