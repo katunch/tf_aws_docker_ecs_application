@@ -125,7 +125,7 @@ locals {
     "AWS_SDK_SECRET"     = aws_iam_access_key.application-task.secret
   })
   environment_variables = merge(var.environment_variables, {
-    "APPLICATION_S3_BUCKET" = aws_s3_bucket.application.bucket.name
+    "APPLICATION_S3_BUCKET" = aws_s3_bucket.application.bucket.id
   })
 }
 
