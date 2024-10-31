@@ -124,6 +124,9 @@ locals {
     "AWS_SDK_ACCESS_KEY" = aws_iam_access_key.application-task.id
     "AWS_SDK_SECRET"     = aws_iam_access_key.application-task.secret
   })
+  environment_variables = merge(var.environment_variables, {
+    "APPLICATION_S3_BUCKET" = aws_s3_bucket.application.bucket.name
+  })
 }
 
 
@@ -244,7 +247,7 @@ resource "aws_ecs_task_definition" "application" {
   container_definitions = jsonencode([
     {
       name                   = "${var.applicationName}-nginx"
-      image                  = "ghcr.io/katunch/tf_aws_docker_ecs_application:v1.1.4"
+      image                  = "ghcr.io/katunch/tf_aws_docker_ecs_application:v1.1.5"
       readonlyRootFilesystem = false
       portMappings = [
         {
@@ -286,7 +289,7 @@ resource "aws_ecs_task_definition" "application" {
           hostPort      = var.host_port
         }
       ]
-      environment = [for key, value in var.environment_variables : {
+      environment = [for key, value in local.environment_variables : {
         name  = key
         value = value
       }]
