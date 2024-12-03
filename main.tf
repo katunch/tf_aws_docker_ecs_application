@@ -247,7 +247,7 @@ resource "aws_ecs_task_definition" "application" {
   container_definitions = jsonencode([
     {
       name                   = "${var.applicationName}-nginx"
-      image                  = "ghcr.io/katunch/tf_aws_docker_ecs_application:v1.1.7"
+      image                  = "ghcr.io/katunch/tf_aws_docker_ecs_application:v1.1.8"
       readonlyRootFilesystem = false
       portMappings = [
         {
@@ -317,7 +317,7 @@ resource "aws_ecs_task_definition" "application" {
   requires_compatibilities = ["FARGATE"]
   runtime_platform {
     operating_system_family = "LINUX"
-    cpu_architecture        = "X86_64"
+    cpu_architecture        = var.cpu_architecture
   }
   network_mode       = "awsvpc"
   execution_role_arn = aws_iam_role.application-task-execution-role.arn

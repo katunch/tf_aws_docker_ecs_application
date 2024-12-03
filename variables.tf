@@ -49,6 +49,12 @@ variable "ecs_capacity_provider" {
   default = "FARGATE_SPOT"
 }
 
+variable "cpu_architecture" {
+  type        = string
+  description = "The CPU architecture of the ECS task"
+  default     = "X86_64"
+}
+
 variable "route53_zone_id" {
   type        = string
   description = "The ID of the Route53 hosted zone"
