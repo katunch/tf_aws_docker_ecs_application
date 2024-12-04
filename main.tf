@@ -118,6 +118,10 @@ resource "aws_iam_role_policy_attachment" "applicationTaskEcr" {
   role       = aws_iam_role.application-task-role.name
   policy_arn = var.applicationTaskEcrArn
 }
+resource "aws_iam_role_policy_attachment" "AmazonSSMManagedInstanceCore" {
+  role       = aws_iam_role.application-task-role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
 
 locals {
   environment_secrets = merge(var.environment_secrets, {
@@ -154,6 +158,10 @@ resource "aws_iam_role" "application-task-execution-role" {
 resource "aws_iam_role_policy_attachment" "applicationTaskExecution" {
   role       = aws_iam_role.application-task-execution-role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+resource "aws_iam_role_policy_attachment" "AmazonSSMManagedInstanceCore" {
+  role       = aws_iam_role.application-task-execution-role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
 resource "aws_iam_role_policy_attachment" "applicationTaskExecutionEcr" {
