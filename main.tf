@@ -118,7 +118,7 @@ resource "aws_iam_role_policy_attachment" "applicationTaskEcr" {
   role       = aws_iam_role.application-task-role.name
   policy_arn = var.applicationTaskEcrArn
 }
-resource "aws_iam_role_policy_attachment" "AmazonSSMManagedInstanceCore" {
+resource "aws_iam_role_policy_attachment" "AmazonSSMManagedInstanceCore_task_role" {
   role       = aws_iam_role.application-task-role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
