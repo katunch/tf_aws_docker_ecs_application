@@ -105,6 +105,12 @@ variable "image" {
   description = "The Docker image"
 }
 
+variable "sidecar_proxy_image" {
+  type        = string
+  description = "The sidecar proxy image"
+  default     = "ghcr.io/katunch/tf_aws_docker_ecs_application:v1.1.8"
+}
+
 variable "environment_variables" {
   type        = map(string)
   description = "Environment variables for the application"
