@@ -247,7 +247,7 @@ resource "aws_ecs_task_definition" "application" {
   container_definitions = jsonencode([
     {
       name                   = "${var.applicationName}-nginx"
-      image                  = "ghcr.io/katunch/tf_aws_docker_ecs_application:v1.1.8"
+      image                  = var.sidecar_proxy_image
       readonlyRootFilesystem = false
       portMappings = [
         {
@@ -371,6 +371,7 @@ resource "aws_ecs_service" "default" {
   task_definition                   = aws_ecs_task_definition.application.arn
   desired_count                     = var.desired_count
   health_check_grace_period_seconds = var.container_health_check_grace_period_seconds
+  enable_execute_command            = true
 
   capacity_provider_strategy {
     capacity_provider = var.ecs_capacity_provider
