@@ -272,7 +272,7 @@ resource "aws_ecs_task_definition" "application" {
         }
       }
       healthCheck = {
-        command     = var.sidecar_health_check_commands
+        command     = ["CMD-SHELL", "curl -f http://localhost/nginx_status || exit 1"]
         interval    = 20
         timeout     = 5
         retries     = 3
