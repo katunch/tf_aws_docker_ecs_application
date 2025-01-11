@@ -105,6 +105,12 @@ variable "image" {
   description = "The Docker image"
 }
 
+variable "sidecar_enabled" {
+  type        = bool
+  description = "Whether to enable the sidecar proxy"
+  default     = true
+}
+
 variable "sidecar_proxy_image" {
   type        = string
   description = "The sidecar proxy image"
