@@ -111,6 +111,24 @@ variable "sidecar_proxy_image" {
   default     = "ghcr.io/katunch/tf_aws_docker_ecs_application:v1.1.11"
 }
 
+variable "sidecar_container_port" {
+  type        = number
+  description = "The port the sidecar container listens on"
+  default     = 80
+}
+
+variable "sidecar_host_port" {
+  type        = number
+  description = "The port the sidecar host listens on"
+  default     = 80
+}
+
+variable "sidecar_health_check_commands" {
+  type        = list(string)
+  description = "The command to run to check the health of the sidecar container"
+  default     = ["CMD-SHELL", "curl -f http://localhost/nginx_status || exit 1"]
+}
+
 variable "environment_variables" {
   type        = map(string)
   description = "Environment variables for the application"
