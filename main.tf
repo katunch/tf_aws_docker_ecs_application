@@ -135,7 +135,7 @@ locals {
 
 
 resource "aws_secretsmanager_secret_version" "application" {
-  secret_id = aws_secretsmanager_secret.application.id
+  secret_id     = aws_secretsmanager_secret.application.id
   secret_string = jsonencode(local.environment_secrets)
 }
 
@@ -245,6 +245,77 @@ resource "aws_secretsmanager_secret" "application" {
   name = "${var.applicationName}-secrets"
 }
 
+locals {
+  container_definition_application = {
+    name      = var.applicationName
+    image     = var.image
+    essential = true
+    portMappings = [
+      {
+        containerPort = var.container_port,
+        hostPort      = var.host_port
+      }
+    ]
+    environment = [for key, value in local.environment_variables : {
+      name  = key
+      value = value
+    }]
+    secrets = [for key, value in local.environment_secrets : {
+      name      = key
+      valueFrom = "${aws_secretsmanager_secret.application.arn}:${key}::"
+    }]
+    healthCheck = {
+      command     = var.container_healtCheck_commands
+      interval    = 20
+      timeout     = 5
+      retries     = 3
+      startPeriod = 120
+    }
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        "awslogs-group"         = aws_cloudwatch_log_group.application.name
+        "awslogs-region"        = var.aws_cloudwatch_region
+        "awslogs-stream-prefix" = "ecs"
+      }
+    }
+  }
+  container_definition_sidecar = {
+    name                   = "${var.applicationName}-nginx"
+    image                  = var.sidecar_proxy_image
+    readonlyRootFilesystem = false
+    portMappings = [
+      {
+        containerPort = 80,
+        hostPort      = 80
+      }
+    ]
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        "awslogs-group"         = "${aws_cloudwatch_log_group.nginx.name}"
+        "awslogs-region"        = var.aws_cloudwatch_region
+        "awslogs-stream-prefix" = "ecs"
+      }
+    }
+    healthCheck = {
+      command     = ["CMD-SHELL", "curl -f http://localhost/nginx_status || exit 1"]
+      interval    = 20
+      timeout     = 5
+      retries     = 3
+      startPeriod = 120
+    }
+    environment = [{
+      name  = "NGINX_PROXY_URL"
+      value = "http://localhost:${var.container_port}"
+      },
+      {
+        name  = "NGINX_VPC_CIDR_BLOCK"
+        value = data.aws_vpc.selected.cidr_block
+    }]
+  }
+}
+
 resource "aws_ecs_task_definition" "application" {
   family = "${var.applicationName}-application"
   cpu    = var.cpu
@@ -252,76 +323,7 @@ resource "aws_ecs_task_definition" "application" {
   ephemeral_storage {
     size_in_gib = 30
   }
-  container_definitions = jsonencode([
-    {
-      name                   = "${var.applicationName}-nginx"
-      image                  = var.sidecar_proxy_image
-      readonlyRootFilesystem = false
-      portMappings = [
-        {
-          containerPort = 80,
-          hostPort      = 80
-        }
-      ]
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          "awslogs-group"         = "${aws_cloudwatch_log_group.nginx.name}"
-          "awslogs-region"        = var.aws_cloudwatch_region
-          "awslogs-stream-prefix" = "ecs"
-        }
-      }
-      healthCheck = {
-        command     = ["CMD-SHELL", "curl -f http://localhost/nginx_status || exit 1"]
-        interval    = 20
-        timeout     = 5
-        retries     = 3
-        startPeriod = 120
-      }
-      environment = [{
-        name = "NGINX_PROXY_URL"
-        value = "http://localhost:${var.container_port}"
-      },
-      {
-        name = "NGINX_VPC_CIDR_BLOCK"
-        value = data.aws_vpc.selected.cidr_block
-      }]
-    },
-    {
-      name      = var.applicationName
-      image     = var.image
-      essential = true
-      portMappings = [
-        {
-          containerPort = var.container_port,
-          hostPort      = var.host_port
-        }
-      ]
-      environment = [for key, value in local.environment_variables : {
-        name  = key
-        value = value
-      }]
-      secrets = [for key, value in local.environment_secrets : {
-        name      = key
-        valueFrom = "${aws_secretsmanager_secret.application.arn}:${key}::"
-      }]
-      healthCheck = {
-        command     = var.container_healtCheck_commands
-        interval    = 20
-        timeout     = 5
-        retries     = 3
-        startPeriod = 120
-      }
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          "awslogs-group"         = aws_cloudwatch_log_group.application.name
-          "awslogs-region"        = var.aws_cloudwatch_region
-          "awslogs-stream-prefix" = "ecs"
-        }
-      }
-    }
-  ])
+  container_definitions = var.sidecar_enabled ? jsonencode([local.container_definition_application, local.container_definition_sidecar]) : jsonencode([local.container_definition_application])
   requires_compatibilities = ["FARGATE"]
   runtime_platform {
     operating_system_family = "LINUX"
@@ -373,6 +375,11 @@ resource "aws_lb_listener_rule" "application" {
   }
 }
 
+locals {
+  load_balancer_container_name = var.sidecar_enabled ? "${var.applicationName}-nginx" : var.applicationName
+  load_balancer_container_port = var.sidecar_enabled ? 80 : var.container_port
+}
+
 resource "aws_ecs_service" "default" {
   name                              = var.applicationName
   cluster                           = var.ecs_cluster_arn
@@ -395,8 +402,8 @@ resource "aws_ecs_service" "default" {
 
   load_balancer {
     target_group_arn = aws_lb_target_group.application.arn
-    container_name   = "${var.applicationName}-nginx"
-    container_port   = 80
+    container_name   = local.load_balancer_container_name
+    container_port   = local.load_balancer_container_port
   }
 
   depends_on = [
