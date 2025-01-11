@@ -259,8 +259,8 @@ resource "aws_ecs_task_definition" "application" {
       readonlyRootFilesystem = false
       portMappings = [
         {
-          containerPort = var.sidecar_container_port,
-          hostPort      = var.sidecar_host_port
+          containerPort = 80,
+          hostPort      = 80
         }
       ]
       logConfiguration = {
