@@ -323,7 +323,7 @@ resource "aws_ecs_task_definition" "application" {
   ephemeral_storage {
     size_in_gib = 30
   }
-  container_definitions = var.sidecar_enabled ? jsonencode([local.container_definition_application, local.container_definition_sidecar]) : jsonencode([local.container_definition_application])
+  container_definitions    = var.sidecar_enabled ? jsonencode([local.container_definition_application, local.container_definition_sidecar]) : jsonencode([local.container_definition_application])
   requires_compatibilities = ["FARGATE"]
   runtime_platform {
     operating_system_family = "LINUX"
@@ -387,6 +387,13 @@ resource "aws_ecs_service" "default" {
   desired_count                     = var.desired_count
   health_check_grace_period_seconds = var.container_health_check_grace_period_seconds
   enable_execute_command            = true
+
+  dynamic "lifecycle" {
+    for_each = var.ignore_desired_count_changes ? [1] : []
+    content {
+      ignore_changes = [desired_count]
+    }
+  }
 
   capacity_provider_strategy {
     capacity_provider = var.ecs_capacity_provider
@@ -457,3 +464,34 @@ resource "aws_iam_user_policy_attachment" "application-pipeline-deploy-listTasks
   user       = aws_iam_user.application-pipeline.name
   policy_arn = aws_iam_policy.ecsDevDeployListTaskPolicy.arn
 }
+
+
+resource "aws_appautoscaling_target" "ecs_target" {
+  count              = var.autoscaling_enabled ? 1 : 0
+  max_capacity       = var.autoscaling_max_capacity
+  min_capacity       = var.desired_count
+  resource_id        = "service/${var.ecs_cluster_name}/${aws_ecs_service.default.name}"
+  scalable_dimension = "ecs:service:DesiredCount"
+  service_namespace  = "ecs"
+}
+
+resource "aws_appautoscaling_policy" "cpu-auto-scaling" {
+  count              = var.autoscaling_enabled ? 1 : 0
+  name               = "cpu-auto-scaling"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.ecs_target[0].resource_id
+  scalable_dimension = aws_appautoscaling_target.ecs_target[0].scalable_dimension
+  service_namespace  = aws_appautoscaling_target.ecs_target[0].service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+
+    target_value       = 70
+    scale_in_cooldown  = 180
+    scale_out_cooldown = 180
+  }
+}
+
+

@@ -38,6 +38,10 @@ variable "ecs_cluster_arn" {
   type        = string
   description = "The ARN of the ECS cluster"
 }
+variable "ecs_cluster_name" {
+  type        = string
+  description = "The name of the ECS cluster"
+}
 
 variable "ecs_capacity_provider" {
   type        = string
@@ -186,4 +190,28 @@ variable "additional_domain_names" {
   type        = list(string)
   description = "Additional domain names for the application"
   default     = []
+}
+
+variable "autoscaling_enabled" {
+  type        = bool
+  description = "Whether to enable autoscaling"
+  default     = false
+}
+
+variable "autoscaling_max_capacity" {
+  type = number
+  description = "The maximum number of tasks to run"
+  default = 4
+}
+
+variable "autoscaling_scale_up_cpu_threshold" {
+  type = number
+  description = "The CPU utilization threshold for scaling up"
+  default = 70
+}
+
+variable "ignore_desired_count_changes" {
+  type        = bool
+  description = "Whether to ignore changes to the desired count"
+  default     = false
 }
