@@ -209,9 +209,3 @@ variable "autoscaling_scale_up_cpu_threshold" {
   description = "The CPU utilization threshold for scaling up"
   default = 70
 }
-
-variable "ignore_desired_count_changes" {
-  type        = bool
-  description = "Whether to ignore changes to the desired count"
-  default     = false
-}
