@@ -388,13 +388,6 @@ resource "aws_ecs_service" "default" {
   health_check_grace_period_seconds = var.container_health_check_grace_period_seconds
   enable_execute_command            = true
 
-  dynamic "lifecycle" {
-    for_each = var.ignore_desired_count_changes ? [1] : []
-    content {
-      ignore_changes = [desired_count]
-    }
-  }
-
   capacity_provider_strategy {
     capacity_provider = var.ecs_capacity_provider
     weight            = 1

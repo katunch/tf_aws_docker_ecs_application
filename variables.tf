@@ -118,7 +118,7 @@ variable "sidecar_enabled" {
 variable "sidecar_proxy_image" {
   type        = string
   description = "The sidecar proxy image"
-  default     = "ghcr.io/katunch/tf_aws_docker_ecs_application:v1.3.0"
+  default     = "ghcr.io/katunch/tf_aws_docker_ecs_application:v1.3.1"
 }
 
 variable "environment_variables" {
@@ -208,10 +208,4 @@ variable "autoscaling_scale_up_cpu_threshold" {
   type = number
   description = "The CPU utilization threshold for scaling up"
   default = 70
-}
-
-variable "ignore_desired_count_changes" {
-  type        = bool
-  description = "Whether to ignore changes to the desired count"
-  default     = false
 }
