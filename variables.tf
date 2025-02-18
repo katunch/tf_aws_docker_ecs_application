@@ -43,20 +43,35 @@ variable "ecs_cluster_name" {
   description = "The name of the ECS cluster"
 }
 
-variable "ecs_capacity_provider" {
-  type        = string
-  description = "The name of the ECS capacity provider"
-  validation {
-    condition     = contains(["FARGATE", "FARGATE_SPOT"], var.ecs_capacity_provider)
-    error_message = "Capacity provider must be either FARGATE or FARGATE_SPOT"
-  }
-  default = "FARGATE_SPOT"
+variable "capacity_provider_strategies" {
+  type = list(object({
+    capacity_provider = string
+    weight            = number
+    base              = number
+  }))
+  description = "The capacity provider strategy"
+  default = [{
+    capacity_provider = "FARGATE_SPOT"
+    weight            = 100
+    base              = 1
+  }]
+}
+
+variable "runsOnFargate" {
+  type        = bool
+  description = "Whether the task runs on Fargate"
+  default     = true
+}
+
+variable "subnet_ids" {
+  type        = list(string)
+  description = "The IDs of the subnets"
 }
 
 variable "cpu_architecture" {
   type        = string
   description = "The CPU architecture of the ECS task"
-  default     = "X86_64"
+  default     = "ARM64"
 }
 
 variable "route53_zone_id" {
@@ -77,11 +92,6 @@ variable "lb_listener_arn" {
 variable "lb_zone_id" {
   type        = string
   description = "The zone ID of the load balancer"
-}
-
-variable "private-subnet-id" {
-  type        = string
-  description = "The ID of the private subnet"
 }
 
 variable "security_group_ids" {
@@ -118,7 +128,7 @@ variable "sidecar_enabled" {
 variable "sidecar_proxy_image" {
   type        = string
   description = "The sidecar proxy image"
-  default     = "ghcr.io/katunch/tf_aws_docker_ecs_application:v1.3.1"
+  default     = "ghcr.io/katunch/tf_aws_docker_ecs_application:v1.4.0"
 }
 
 variable "environment_variables" {
@@ -199,13 +209,13 @@ variable "autoscaling_enabled" {
 }
 
 variable "autoscaling_max_capacity" {
-  type = number
+  type        = number
   description = "The maximum number of tasks to run"
-  default = 4
+  default     = 4
 }
 
 variable "autoscaling_scale_up_cpu_threshold" {
-  type = number
+  type        = number
   description = "The CPU utilization threshold for scaling up"
-  default = 70
+  default     = 70
 }

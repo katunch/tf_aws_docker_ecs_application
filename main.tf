@@ -122,6 +122,10 @@ resource "aws_iam_role_policy_attachment" "AmazonSSMManagedInstanceCore_task_rol
   role       = aws_iam_role.application-task-role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
+resource "aws_iam_role_policy_attachment" "AmazonECSTaskExecutionRolePolicy" {
+  role       = aws_iam_role.application-task-role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+}
 
 locals {
   environment_secrets = merge(var.environment_secrets, {
@@ -162,6 +166,11 @@ resource "aws_iam_role_policy_attachment" "applicationTaskExecution" {
 resource "aws_iam_role_policy_attachment" "AmazonSSMManagedInstanceCore" {
   role       = aws_iam_role.application-task-execution-role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
+  role       = aws_iam_role.application-task-execution-role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
 }
 
 resource "aws_iam_role_policy_attachment" "applicationTaskExecutionEcr" {
@@ -243,9 +252,11 @@ resource "aws_cloudwatch_log_group" "nginx" {
 
 resource "aws_secretsmanager_secret" "application" {
   name = "${var.applicationName}-secrets"
+  recovery_window_in_days = 0
 }
 
 locals {
+  isFargate = var.runsOnFargate
   container_definition_application = {
     name      = var.applicationName
     image     = var.image
@@ -320,14 +331,26 @@ resource "aws_ecs_task_definition" "application" {
   family = "${var.applicationName}-application"
   cpu    = var.cpu
   memory = var.memory
-  ephemeral_storage {
-    size_in_gib = 30
+  dynamic "ephemeral_storage" {
+    for_each = local.isFargate ? [{
+      size_in_gib = 30
+    }] : []
+    content {
+      size_in_gib = ephemeral_storage.value.size_in_gib
+    }
   }
-  container_definitions    = var.sidecar_enabled ? jsonencode([local.container_definition_application, local.container_definition_sidecar]) : jsonencode([local.container_definition_application])
-  requires_compatibilities = ["FARGATE"]
-  runtime_platform {
-    operating_system_family = "LINUX"
-    cpu_architecture        = var.cpu_architecture
+
+  container_definitions = var.sidecar_enabled ? jsonencode([local.container_definition_application, local.container_definition_sidecar]) : jsonencode([local.container_definition_application])
+  requires_compatibilities = local.isFargate ? ["FARGATE"] : ["EC2"]
+  dynamic "runtime_platform" {
+    for_each = !local.isFargate ? [] : [{
+      operating_system_family = "LINUX"
+      cpu_architecture        = var.cpu_architecture
+    }]
+    content {
+      operating_system_family = runtime_platform.value.operating_system_family
+      cpu_architecture        = runtime_platform.value.cpu_architecture
+    }
   }
   network_mode       = "awsvpc"
   execution_role_arn = aws_iam_role.application-task-execution-role.arn
@@ -388,14 +411,38 @@ resource "aws_ecs_service" "default" {
   health_check_grace_period_seconds = var.container_health_check_grace_period_seconds
   enable_execute_command            = true
 
-  capacity_provider_strategy {
-    capacity_provider = var.ecs_capacity_provider
-    weight            = 1
-    base              = 1
+  dynamic "capacity_provider_strategy" {
+    for_each = var.capacity_provider_strategies
+    content {
+      capacity_provider = capacity_provider_strategy.value.capacity_provider
+      weight            = capacity_provider_strategy.value.weight
+      base              = capacity_provider_strategy.value.base
+    }
+  }
+
+  deployment_controller {
+    type = "ECS"
+  }
+
+  dynamic "ordered_placement_strategy" {
+    for_each = local.isFargate ? [] : [
+      {
+        field = "attribute:ecs.availability-zone"
+        type  = "spread"
+      },
+      {
+        field = "instanceId"
+        type  = "spread"
+      }
+    ]
+    content {
+      field = ordered_placement_strategy.value.field
+      type  = ordered_placement_strategy.value.type
+    }
   }
 
   network_configuration {
-    subnets          = [var.private-subnet-id]
+    subnets          = var.subnet_ids
     security_groups  = var.security_group_ids
     assign_public_ip = false
   }
@@ -404,6 +451,12 @@ resource "aws_ecs_service" "default" {
     target_group_arn = aws_lb_target_group.application.arn
     container_name   = local.load_balancer_container_name
     container_port   = local.load_balancer_container_port
+  }
+
+  lifecycle {
+    ignore_changes = [
+      desired_count
+    ]
   }
 
   depends_on = [
