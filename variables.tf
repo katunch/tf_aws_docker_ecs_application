@@ -219,3 +219,9 @@ variable "autoscaling_scale_up_cpu_threshold" {
   description = "The CPU utilization threshold for scaling up"
   default     = 70
 }
+
+variable "assign_public_ip" {
+  type        = bool
+  description = "Whether to assign a public IP to the task"
+  default     = false
+}
