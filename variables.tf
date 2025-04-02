@@ -128,7 +128,7 @@ variable "sidecar_enabled" {
 variable "sidecar_proxy_image" {
   type        = string
   description = "The sidecar proxy image"
-  default     = "ghcr.io/katunch/tf_aws_docker_ecs_application:v1.4.1"
+  default     = "ghcr.io/katunch/tf_aws_docker_ecs_application:v1.4.2"
 }
 
 variable "environment_variables" {
@@ -176,6 +176,12 @@ variable "host_port" {
   type        = number
   description = "The port the host listens on"
   default     = 8080
+}
+
+variable "lb_health_check_timeout" {
+  type        = number
+  description = "The timeout for the load balancer health check"
+  default     = 10
 }
 
 variable "health_check_path" {
