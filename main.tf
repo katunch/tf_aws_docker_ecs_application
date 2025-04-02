@@ -367,7 +367,7 @@ resource "aws_lb_target_group" "application" {
   health_check {
     path                = var.health_check_path
     interval            = 60
-    timeout             = 10
+    timeout             = var.lb_health_check_timeout
     healthy_threshold   = 3
     unhealthy_threshold = 3
     matcher             = var.health_check_matcher

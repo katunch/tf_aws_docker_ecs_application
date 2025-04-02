@@ -178,6 +178,12 @@ variable "host_port" {
   default     = 8080
 }
 
+variable "lb_health_check_timeout" {
+  type        = number
+  description = "The timeout for the load balancer health check"
+  default     = 10
+}
+
 variable "health_check_path" {
   type        = string
   description = "The path to the health check endpoint"
