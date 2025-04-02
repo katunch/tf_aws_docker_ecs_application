@@ -128,7 +128,7 @@ variable "sidecar_enabled" {
 variable "sidecar_proxy_image" {
   type        = string
   description = "The sidecar proxy image"
-  default     = "ghcr.io/katunch/tf_aws_docker_ecs_application:v1.4.1"
+  default     = "ghcr.io/katunch/tf_aws_docker_ecs_application:v1.4.2"
 }
 
 variable "environment_variables" {
