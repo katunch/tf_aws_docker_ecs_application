@@ -109,6 +109,18 @@ variable "applicationTaskEcrArn" {
   description = "The ARN of the ECR policy"
 }
 
+variable "additionalTaskPolicyArns" {
+  type        = list(string)
+  description = "Additional ARNs for task policies"
+  default     = []
+}
+
+variable "additionalPipelinePolicyArns" {
+  type        = list(string)
+  description = "Additional ARNs for pipeline policies"
+  default     = []
+}
+
 variable "applicationTaskExecutionEcrArn" {
   type        = string
   description = "The ARN of the ECR policy"

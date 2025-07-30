@@ -20,6 +20,12 @@ resource "aws_iam_user_policy_attachment" "application-pipeline" {
   policy_arn = var.ecr_access_policy_arn
 }
 
+resource "aws_iam_user_policy_attachment" "additionalPipelinePolicyArns" {
+  count      = length(var.additionalPipelinePolicyArns)
+  user       = aws_iam_user.application-pipeline.name
+  policy_arn = var.additionalPipelinePolicyArns[count.index]
+}
+
 resource "aws_s3_bucket" "application" {
   bucket = "${var.application_S3_bucket_prefix}-${var.applicationName}"
 }
@@ -109,6 +115,12 @@ resource "aws_iam_role" "application-task-role" {
     ]
   })
 }
+resource "aws_iam_role_policy_attachment" "additionalTaskPolicyArns" {
+  count      = length(var.additionalTaskPolicyArns)
+  role       = aws_iam_role.application-task-role.name
+  policy_arn = var.additionalTaskPolicyArns[count.index]
+}
+
 resource "aws_iam_role_policy_attachment" "application-s3" {
   role       = aws_iam_role.application-task-role.name
   policy_arn = aws_iam_policy.application-s3.arn
