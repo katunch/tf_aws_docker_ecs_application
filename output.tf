@@ -67,13 +67,12 @@ output "application_kms_key_arn" {
   value       = aws_kms_key.s3.arn
 }
 
-output "alb_target_group_arn" {
-  description = "The ARN of the ALB target group for the application."
-  value       = aws_alb_target_group.application.arn
+output "lb_target_group_arn" {
+  description = "The ARN of the LB target group for the application."
+  value       = aws_lb_target_group.application.arn
 }
 
-output "alb_target_group_arn_suffix" {
-  description = "The suffix of the ALB target group ARN for the application."
-  value       = aws_alb_target_group.application.arn_suffix
-  
+output "lb_target_group_arn_suffix" {
+  description = "The suffix of the LB target group ARN for the application."
+  value       = aws_lb_target_group.application.arn_suffix
 }
