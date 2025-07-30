@@ -140,7 +140,7 @@ variable "sidecar_enabled" {
 variable "sidecar_proxy_image" {
   type        = string
   description = "The sidecar proxy image"
-  default     = "ghcr.io/katunch/tf_aws_docker_ecs_application:v1.5.2"
+  default     = "ghcr.io/katunch/tf_aws_docker_ecs_application:v1.6.0"
 }
 
 variable "environment_variables" {
@@ -218,24 +218,6 @@ variable "additional_domain_names" {
   type        = list(string)
   description = "Additional domain names for the application"
   default     = []
-}
-
-variable "autoscaling_enabled" {
-  type        = bool
-  description = "Whether to enable autoscaling"
-  default     = false
-}
-
-variable "autoscaling_max_capacity" {
-  type        = number
-  description = "The maximum number of tasks to run"
-  default     = 4
-}
-
-variable "autoscaling_scale_up_cpu_threshold" {
-  type        = number
-  description = "The CPU utilization threshold for scaling up"
-  default     = 70
 }
 
 variable "assign_public_ip" {
