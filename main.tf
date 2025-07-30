@@ -522,34 +522,3 @@ resource "aws_iam_user_policy_attachment" "application-pipeline-deploy-listTasks
   user       = aws_iam_user.application-pipeline.name
   policy_arn = aws_iam_policy.ecsDevDeployListTaskPolicy.arn
 }
-
-
-resource "aws_appautoscaling_target" "ecs_target" {
-  count              = var.autoscaling_enabled ? 1 : 0
-  max_capacity       = var.autoscaling_max_capacity
-  min_capacity       = var.desired_count
-  resource_id        = "service/${var.ecs_cluster_name}/${aws_ecs_service.default.name}"
-  scalable_dimension = "ecs:service:DesiredCount"
-  service_namespace  = "ecs"
-}
-
-resource "aws_appautoscaling_policy" "cpu-auto-scaling" {
-  count              = var.autoscaling_enabled ? 1 : 0
-  name               = "cpu-auto-scaling"
-  policy_type        = "TargetTrackingScaling"
-  resource_id        = aws_appautoscaling_target.ecs_target[0].resource_id
-  scalable_dimension = aws_appautoscaling_target.ecs_target[0].scalable_dimension
-  service_namespace  = aws_appautoscaling_target.ecs_target[0].service_namespace
-
-  target_tracking_scaling_policy_configuration {
-    predefined_metric_specification {
-      predefined_metric_type = "ECSServiceAverageCPUUtilization"
-    }
-
-    target_value       = 70
-    scale_in_cooldown  = 180
-    scale_out_cooldown = 180
-  }
-}
-
-

@@ -220,24 +220,6 @@ variable "additional_domain_names" {
   default     = []
 }
 
-variable "autoscaling_enabled" {
-  type        = bool
-  description = "Whether to enable autoscaling"
-  default     = false
-}
-
-variable "autoscaling_max_capacity" {
-  type        = number
-  description = "The maximum number of tasks to run"
-  default     = 4
-}
-
-variable "autoscaling_scale_up_cpu_threshold" {
-  type        = number
-  description = "The CPU utilization threshold for scaling up"
-  default     = 70
-}
-
 variable "assign_public_ip" {
   type        = bool
   description = "Whether to assign a public IP to the task"
