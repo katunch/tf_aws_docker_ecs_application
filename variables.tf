@@ -57,6 +57,16 @@ variable "capacity_provider_strategies" {
   }]
 }
 
+variable "availability_zone_rebalancing" {
+  type        = bool
+  description = "Whether to enable availability zone rebalancing"
+  default     = "ENABLED"
+  validation {
+    condition     = var.availability_zone_rebalancing == "ENABLED" || var.availability_zone_rebalancing == "DISABLED"
+    error_message = "The variable 'availability_zone_rebalancing' must be either 'ENABLED' or 'DISABLED'."
+  }
+}
+
 variable "runsOnFargate" {
   type        = bool
   description = "Whether the task runs on Fargate"
@@ -140,7 +150,7 @@ variable "sidecar_enabled" {
 variable "sidecar_proxy_image" {
   type        = string
   description = "The sidecar proxy image"
-  default     = "ghcr.io/katunch/tf_aws_docker_ecs_application:v1.6.0"
+  default     = "ghcr.io/katunch/tf_aws_docker_ecs_application:v1.6.1"
 }
 
 variable "environment_variables" {

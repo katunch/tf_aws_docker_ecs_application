@@ -422,6 +422,7 @@ resource "aws_ecs_service" "default" {
   desired_count                     = var.desired_count
   health_check_grace_period_seconds = var.container_health_check_grace_period_seconds
   enable_execute_command            = true
+  availability_zone_rebalancing     = var.availability_zone_rebalancing
 
   dynamic "capacity_provider_strategy" {
     for_each = var.capacity_provider_strategies
