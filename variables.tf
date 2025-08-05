@@ -58,7 +58,7 @@ variable "capacity_provider_strategies" {
 }
 
 variable "availability_zone_rebalancing" {
-  type        = bool
+  type        = string
   description = "Whether to enable availability zone rebalancing"
   default     = "ENABLED"
   validation {
