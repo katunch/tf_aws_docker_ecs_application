@@ -57,6 +57,16 @@ variable "capacity_provider_strategies" {
   }]
 }
 
+variable "availability_zone_rebalancing" {
+  type        = bool
+  description = "Whether to enable availability zone rebalancing"
+  default     = "ENABLED"
+  validation {
+    condition     = var.availability_zone_rebalancing == "ENABLED" || var.availability_zone_rebalancing == "DISABLED"
+    error_message = "The variable 'availability_zone_rebalancing' must be either 'ENABLED' or 'DISABLED'."
+  }
+}
+
 variable "runsOnFargate" {
   type        = bool
   description = "Whether the task runs on Fargate"
