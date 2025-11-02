@@ -1,0 +1,82 @@
+server {
+    listen 80 default_server;
+        # NGINX will handle gzip compression of responses from the app server
+    gzip on;
+    gzip_proxied any;
+    gzip_types text/plain application/json;
+    gzip_min_length 1000;
+    server_tokens off;
+
+    access_log /var/log/nginx/access.log main;
+
+    # # Enable error logging for debugging
+    error_log /var/log/nginx/error.log warn;
+
+
+    # Custom JSON response for 429 errors
+    error_page 429 = @429;
+    location @429 {
+        default_type application/json;
+        return 429 '{"status": 429, "message": "Too Many Requests"}';
+    }
+
+    limit_req_status 429;  # Set the status code for rate-limited requests
+
+    location ~ (\.php|.aspx|.asp|myadmin) {
+        deny all;
+    }
+
+    location ~* "(eval\()" {
+        deny all;
+    }
+
+    location ~* "(\'|\")(.*)(drop|insert|md5|select|union)" {
+        deny all;
+    }
+
+    location ~ "(~|`|<|>|:|;|%|\\|\s|\{|\}|\[|\]|\|)" {
+        deny all;
+    }
+
+    location ~* "(<|%3C).*script.*(>|%3)" {
+        deny all;
+    }
+
+    location / {
+        limit_req zone=ip_limit burst=${NGINX_RATE_LIMIT_BURST} nodelay;
+
+        client_max_body_size 50M;
+
+        proxy_pass          ${NGINX_PROXY_URL};
+        proxy_http_version  1.1;
+
+        proxy_set_header    Connection          $connection_upgrade;
+        proxy_set_header    Upgrade             $http_upgrade;
+        proxy_set_header    Host                $host;
+        proxy_set_header    X-Real-IP           $remote_addr;
+        proxy_set_header    X-Forwarded-For     $proxy_add_x_forwarded_for;
+
+        proxy_read_timeout 300;
+        proxy_connect_timeout 30;
+        proxy_send_timeout 300;
+
+        proxy_hide_header Server;
+        proxy_cookie_flags ~ SameSite=Lax;
+
+        # Security headers
+        add_header X-Frame-Options "DENY" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-XSS-Protection "1; mode=block" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    }
+
+    location /nginx_status {
+        stub_status on;
+        access_log off;
+        allow 127.0.0.1;
+        allow ${NGINX_VPC_CIDR_BLOCK};
+        deny all;
+    }
+
+}
