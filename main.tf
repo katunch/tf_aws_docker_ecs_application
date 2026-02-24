@@ -287,6 +287,7 @@ locals {
       name      = key
       valueFrom = "${aws_secretsmanager_secret.application.arn}:${key}::"
     }]
+    stopTimeout = var.stop_timeout_seconds
     healthCheck = {
       command     = var.container_healtCheck_commands
       interval    = 20
