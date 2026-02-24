@@ -141,6 +141,12 @@ variable "image" {
   description = "The Docker image"
 }
 
+variable "stop_timeout_seconds" {
+  type        = number
+  description = "The time in seconds to wait before forcefully stopping the container"
+  default     = 30
+}
+
 variable "sidecar_enabled" {
   type        = bool
   description = "Whether to enable the sidecar proxy"
